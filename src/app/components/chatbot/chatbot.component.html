@@ -1,0 +1,31 @@
+<div class="chatbot-container">
+  <div class="chatbot-header">
+    <span class="greeting">Hi Guest</span>
+    <div class="header-buttons">
+      <button class="settings-btn" (click)="openSettings()">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button class="close-btn" (click)="closeChat()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="chatbot-body" #body>
+    <div *ngFor="let m of messages" [ngClass]="{'message': true, 'bot-message': !m.isUser, 'user-message': m.isUser}">
+      {{ m.text }}
+    </div>
+    <!--  Typing indicator  -->
+    <div *ngIf="isTyping" class="message bot-message typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <div class="chatbot-footer">
+    <input type="text" placeholder="Type your message..." class="message-input"
+           [(ngModel)]="userMessage" (keyup.enter)="sendMessage()">
+    <button class="send-btn" (click)="sendMessage()">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>

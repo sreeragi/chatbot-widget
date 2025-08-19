@@ -1,0 +1,74 @@
+<div class="style-editor-container">
+  <h2>Chatbot Style Customizer</h2>
+  
+  <div class="editor-preview">
+    <!-- Left Panel - Form Controls -->
+    <div class="editor-form">
+      <div class="form-group">
+        <label>Header Color</label>
+        <input type="color" [(ngModel)]="styles.header_bg" (input)="updatePreview()">
+      </div>
+
+      <div class="form-group">
+        <label>Bot Message Color</label>
+        <input type="color" [(ngModel)]="styles.bot_message_bg" (input)="updatePreview()">
+      </div>
+
+      <div class="form-group">
+        <label>User Message Color</label>
+        <input type="color" [(ngModel)]="styles.user_message_bg" (input)="updatePreview()">
+      </div>
+
+      <div class="form-group">
+        <label>Button Color</label>
+        <input type="color" [(ngModel)]="styles.button_bg" (input)="updatePreview()">
+      </div>
+
+      <div class="form-group">
+  <label>Font Family</label>
+  <select [(ngModel)]="styles.font_family" (change)="updatePreview()">
+    <option>Arial</option>
+    <option>Verdana</option>
+    <option>Georgia</option>
+    <option>Courier New</option>
+    <option>Tahoma</option>
+    <option>Trebuchet MS</option>
+    <option>Times New Roman</option>
+    <option>Lucida Console</option>
+    <option>Comic Sans MS</option> 
+    <option>Segoe UI</option>
+    <option>Monaco</option>
+  </select>
+</div>
+
+
+      <div class="form-group">
+        <label>Theme</label>
+        <select [(ngModel)]="styles.theme" (change)="updatePreview()">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit" (click)="saveStyles()">Save Changes</button>
+        <button class="btn-continue" (click)="continueEditing()">Continue Editing</button>
+      </div>
+    </div>
+
+    <!-- Right Panel - Live Preview -->
+    <div class="live-preview" [ngStyle]="getPreviewStyles()">
+      <div class="preview-header">
+        <span>Hi Guest</span>
+      </div>
+      <div class="preview-body">
+        <div class="preview-bot-message">This is a bot message</div>
+        <div class="preview-user-message">User message here</div>
+      </div>
+      <div class="preview-footer">
+        <input placeholder="Type message...">
+        <button>Send</button>
+      </div>
+    </div>
+  </div>
+</div>

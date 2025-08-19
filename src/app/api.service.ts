@@ -4,7 +4,7 @@ import { Subject, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppService {
-  private readonly apiUrl = 'https://chatbot-server-2-pk75.onrender.com/api';
+  private readonly apiUrl = 'https://chatbot-server-3-31wb.onrender.com/api';
 
   public stylesUpdated$ = new Subject<any>();
 

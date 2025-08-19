@@ -4,7 +4,7 @@ import { StyleEditorComponent } from './components/style-editor/style-editor.com
 import { NgModule } from '@angular/core';
 
 export const routes: Routes = [
-    {path:'chatbot',component:ChatbotComponent},
+    {path:'',component:ChatbotComponent},
     {path:'style-editor', component:StyleEditorComponent}
 ];
 

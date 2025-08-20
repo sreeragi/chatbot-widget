@@ -14,7 +14,13 @@ import { AppService } from '../../api.service';
 export class StyleEditorComponent {
   private readonly apiUrl = 'http://localhost:3000/api';
   userId: number = 0;   // default → will be replaced once we get real userId
-  styles: any = {};
+  styles: any = {
+  header_bg: '#3498db',
+  bot_message_bg: '#ffffff',
+  user_message_bg: '#3498db',
+  button_bg: '#3498db',
+  font_family: 'Arial',
+  theme: 'light'}
 
   constructor(
     private router: Router,

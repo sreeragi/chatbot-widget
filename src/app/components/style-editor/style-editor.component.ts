@@ -9,44 +9,50 @@ import { AppService } from '../../api.service';
   selector: 'app-style-editor',
   templateUrl: './style-editor.component.html',
   styleUrls: ['./style-editor.component.css'],
-  imports:[CommonModule,FormsModule]
+  imports:[CommonModule, FormsModule]
 })
 export class StyleEditorComponent {
   private readonly apiUrl = 'http://localhost:3000/api';
-  userId: number = 0;   // default → will be replaced once we get real userId
+  userId: number = 0;
+
   styles: any = {
-  header_bg: '#3498db',
-  bot_message_bg: '#ffffff',
-  user_message_bg: '#3498db',
-  button_bg: '#3498db',
-  font_family: 'Arial',
-  theme: 'light'}
+    header_bg: '#3498db',
+    bot_message_bg: '#ffffff',
+    user_message_bg: '#3498db',
+    button_bg: '#3498db',
+    font_family: 'Arial',
+    theme: 'light'
+  };
 
   constructor(
     private router: Router,
-    private http:HttpClient,
+    private http: HttpClient,
     private appService: AppService
   ) {}
 
   ngOnInit() {
-    // Listen for userId from Aadhaar app
+    // ✅ Listen for userId from Aadhaar app
     window.addEventListener('message', (event) => {
-      if (event.origin !== 'http://localhost:4200') return; // Aadhaar app origin
+      if (
+        event.origin !== 'http://localhost:4200' &&
+        event.origin !== 'https://your-adhar-app.com'
+      ) return;
+
       if (event.data?.userId) {
         this.userId = Number(event.data.userId);
-        localStorage.setItem('userId', this.userId.toString());
+        sessionStorage.setItem('userId', this.userId.toString());
         this.loadStyles();
       }
     });
 
-    // fallback: check localStorage if user already logged in
-    const savedId = localStorage.getItem('userId');
+    // ✅ fallback: check sessionStorage if already set
+    const savedId = sessionStorage.getItem('userId');
     if (savedId) {
       this.userId = Number(savedId);
       this.loadStyles();
     }
 
-    // Listen for style updates
+    // ✅ Listen for live style updates
     this.appService.stylesUpdated$.subscribe((newStyles) => {
       this.applyStyles(newStyles);
     });
@@ -54,13 +60,13 @@ export class StyleEditorComponent {
 
   private loadStyles() {
     if (!this.userId) {
-      console.warn("No userId available, applying defaults.");
+      console.warn("⚠️ No userId available, applying defaults.");
       this.applyStyles(this.getDefaultStyles());
       return;
     }
 
-    // Try localStorage first
-    const savedStyles = localStorage.getItem(`chatbotStyles_${this.userId}`);
+    // Try sessionStorage first
+    const savedStyles = sessionStorage.getItem(`chatbotStyles_${this.userId}`);
     if (savedStyles) {
       this.applyStyles(JSON.parse(savedStyles));
     }
@@ -69,10 +75,10 @@ export class StyleEditorComponent {
     this.appService.getStyles(this.userId).subscribe({
       next: (styles: any) => {
         this.applyStyles(styles);
-        localStorage.setItem(`chatbotStyles_${this.userId}`, JSON.stringify(styles));
+        sessionStorage.setItem(`chatbotStyles_${this.userId}`, JSON.stringify(styles));
       },
       error: (err) => {
-        console.error('Failed to load styles:', err);
+        console.error('❌ Failed to load styles:', err);
         this.applyStyles(this.getDefaultStyles());
       }
     });
@@ -100,7 +106,7 @@ export class StyleEditorComponent {
   }
 
   updatePreview() {
-    // Live preview updates automatically through binding
+    // Preview handled automatically by bindings
   }
 
   getPreviewStyles() {
@@ -114,10 +120,11 @@ export class StyleEditorComponent {
     };
   }
 
-  //  Save styles to DB for this user
+  // ✅ Save styles to DB for this user
   saveStyles() {
     if (!this.userId) {
-      console.error("No userId found, cannot save styles!");
+      console.error("❌ No userId found, cannot save styles!");
+      alert("Please login from Aadhaar app first.");
       return;
     }
 
@@ -133,18 +140,17 @@ export class StyleEditorComponent {
 
     this.appService.saveStyles(this.userId, payload).subscribe({
       next: (savedStyles) => {
-        // Update localStorage with the exact response from server
-        localStorage.setItem(`chatbotStyles_${this.userId}`, JSON.stringify(savedStyles));
-        console.log(" Styles saved to DB and localStorage");
+        sessionStorage.setItem(`chatbotStyles_${this.userId}`, JSON.stringify(savedStyles));
+        console.log("✅ Styles saved to DB and sessionStorage");
         this.router.navigate(['/chatbot']);
       },
       error: (err) => {
-        console.error(" Failed to save styles:", err);
+        console.error("❌ Failed to save styles:", err);
       }
     });
   }
 
   continueEditing() {
-    // Just keeps you on the editor
+    // Stay on the editor
   }
 }

@@ -33,6 +33,11 @@ export class AppService {
     );
   }
 
+  getUser(userId: number) {
+  return this.http.get(`http://localhost:3000/api/users/${userId}`);
+}
+
+
   sendAiMessage(message: string, userId?: string | number) {
     const id = this.normalizeUserId(userId);
     return this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, {

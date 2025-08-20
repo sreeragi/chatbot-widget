@@ -20,6 +20,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   styles: any = {};
   isTyping = false;
   userId: number = 0;
+  userName: string = 'Guest';  // 👈 added
 
   @ViewChild('body') body!: ElementRef;
   
@@ -32,22 +33,23 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // ✅ Listen for Aadhaar app sending userId via postMessage
     window.addEventListener('message', (event) => {
-      // ⚠️ SECURITY: Replace with your Aadhaar app's actual origin
       if (event.origin !== 'http://localhost:4200') return;
 
       const data = event.data;
       if (data?.userId) {
         this.userId = Number(data.userId);
-        localStorage.setItem('userId', this.userId.toString());
+        sessionStorage.setItem('userId', this.userId.toString());
         this.loadStyles();
+        this.loadUserName();   // 👈 fetch username
       }
     });
 
-    // ✅ fallback: get from localStorage if already saved
-    const savedId = localStorage.getItem('userId');
+    // ✅ fallback: get from sessionStorage if already saved
+    const savedId = sessionStorage.getItem('userId');
     if (savedId) {
       this.userId = Number(savedId);
       this.loadStyles();
+      this.loadUserName();   // 👈 fetch username
     }
 
     this.messages.push({ text: 'Welcome! How can I help you today?', isUser: false });
@@ -60,28 +62,14 @@ export class ChatbotComponent implements OnInit, OnDestroy {
 
   private loadStyles() {
     if (!this.userId) {
-      console.warn("No userId available, applying default styles.");
       this.applyStyles(this.getDefaultStyles());
       return;
     }
-
-    // 1. Try localStorage first
-    const savedStyles = localStorage.getItem(`chatbotStyles_${this.userId}`);
-    if (savedStyles) {
-      this.applyStyles(JSON.parse(savedStyles));
-    }
-
-    // 2. Fetch from server
     this.appService.getStyles(this.userId).subscribe({
       next: (dbStyles: any) => {
-        if (dbStyles) {
-          this.applyStyles(dbStyles);
-          // Update localStorage with fresh DB data
-          localStorage.setItem(`chatbotStyles_${this.userId}`, JSON.stringify(dbStyles));
-        }
+        if (dbStyles) this.applyStyles(dbStyles);
       },
-      error: (err) => {
-        console.error('Failed to load styles:', err);
+      error: () => {
         this.applyStyles(this.getDefaultStyles());
       }
     });
@@ -106,43 +94,47 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     document.documentElement.style.setProperty('--font-family', style.font_family || 'Arial');
   }
 
-  openSettings() {
-    this.router.navigate(['/style-editor']);
+  // 👇 NEW: Fetch username from Aadhaar API
+  private loadUserName() {
+    if (!this.userId) return;
+
+    this.http.get<{ name: string }>(`https://your-adhar-server.com/api/users/${this.userId}`)
+      .subscribe({
+        next: (res) => {
+          if (res?.name) {
+            this.userName = res.name;
+          }
+        },
+        error: (err) => {
+          console.error('❌ Failed to load user name:', err);
+        }
+      });
   }
 
-  closeChat() {
-    console.log('Chat closed');
+  openSettings() {
+    this.router.navigate(['/style-editor']);
   }
 
   sendMessage() {
     const t = this.userMessage?.trim();
     if (!t) return;
 
-    // Add user's message locally
     this.messages.push({ text: t, isUser: true });
     this.scrollToBottom();
-
-    // Show typing indicator
     this.isTyping = true;
 
-    // Get userId from localStorage (or Aadhaar flow)
-    const userId = localStorage.getItem('userId') || undefined;
-
-    // Send message to AI
-    this.appService.sendAiMessage(t, userId).subscribe({
+    this.appService.sendAiMessage(t, this.userId).subscribe({
       next: (res) => {
         this.messages.push({ text: res.reply, isUser: false });
         this.isTyping = false;
         this.scrollToBottom();
       },
-      error: (err) => {
+      error: () => {
         this.messages.push({ text: "Oops, I couldn't reply right now.", isUser: false });
         this.isTyping = false;
-        console.error(err);
       }
     });
 
-    // Clear input
     this.userMessage = '';
   }
 
@@ -151,7 +143,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       try {
         const el = this.body.nativeElement;
         el.scrollTop = el.scrollHeight;
-      } catch (err) {}
+      } catch {}
     }, 50);
   }
 
